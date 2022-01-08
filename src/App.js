@@ -4,15 +4,15 @@ function App() {
   const [ options, setOptions ] = useState('');
   const [ generatedItems, setGeneratedItems ] = useState([]);
 
-  const rndItem = () => {
-    const lines = options
-      .trim()
-      .split(/[\n,]/)
-      .map((i) => i.trim())
-      .filter((i) => !!i);
+  const lines = options
+    .trim()
+    .split(/[\n,]/)
+    .map((i) => i.trim())
+    .filter((i) => !!i);
+  
+  console.log(lines);
 
-    return lines[Math.floor(Math.random() * lines.length)];
-  }
+  const rndItem = () => lines[Math.floor(Math.random() * lines.length)];
 
   const generateRandomItem = () => {
     const item = rndItem();
@@ -23,8 +23,12 @@ function App() {
     setGeneratedItems([ ...generatedItems, rndItem() ]);
   }
 
+  const removeItem = (index) => setGeneratedItems(generatedItems.filter((v, i) => index !== i));
+
+  console.log(generatedItems.length === 0)
+
   return (
-    <div className="App flex flex-1 flex-col h-full">
+    <div className="App flex flex-1 flex-col h-full bg-gray-50">
       <header className="text-center">
         <h1 className="text-3xl font-bold bg-yellow-200 p-4">Randomizer</h1>
       </header>
@@ -37,25 +41,33 @@ function App() {
           />
         </div>
         <div className="flex flex-col flex-auto px-4">
-          <div className="flex h-16 flex-row justify-evenly">
+          <div className="flex flex-row justify-evenly rounded-md bg-gray-300 py-2 mb-4">
             <button
-              className="rounded-full bg-blue-800 px-2 text-gray-50"
+              className="rounded-md px-3 py-2 text-md shadow bg-blue-700 text-white hover:bg-blue-800 disabled:bg-blue-500"
               onClick={generateRandomItem}
+              disabled={lines.length === 0}
             >
               Generate Random
             </button>
             <button
-              className="rounded-full bg-red-800 px-2 text-gray-50"
+              className="rounded-md px-3 py-2 text-md shadow bg-red-700 text-white hover:bg-red-800 disabled:bg-red-500"
               onClick={() => setGeneratedItems([])}
+              disabled={generatedItems.length === 0}
             >
-              Reset Items
+              Reset List
             </button>
           </div>
 
-          <div className="">
-            <ul>
+          <div className="px-8">
+            <ul className="list-disc">
               {generatedItems.map((item, index) => (
-                <li key={`${index}-${item}`}>{item}</li>
+                <li
+                  key={`${index}-${item}`}
+                  className="hover:bg-red-200 px-2"
+                  onClick={() => removeItem(index)}
+                >
+                  {item}
+                </li>
               ))}
             </ul>
           </div>
