@@ -30,27 +30,21 @@ function RandomizerPage() {
   }, [source]);
 
   const formatOutput = useCallback(() => {
-    const tokens = template.split(/\s/);
-    setOutput(tokens.map((token) => {
-      const match = token.match(/\<(.*)\>/);
-      if (match) {
-        console.log(match);
-        const generator = items[match[1]];
-        if (!generator) {
-        }
-
-        return generator[Math.floor(Math.random() * generator.length)];
+    const replacer = (match, token) => {
+      const generator = items[token];
+      if (!generator) {
+        return match;
       }
 
-      return token;
-    }).join(' '));
+      return generator[Math.floor(Math.random() * generator.length)];
+    };
+    
+    setOutput(template.replace(/\<([a-zA-Z]*)\>/g, replacer));
   }, [template, items]);
 
   useEffect(() => {
     formatOutput();
   }, [formatOutput]);
-
-  console.log(items);
 
   return (
     <div className="flex flex-1 flex-col xl:w-4/5 lg:w-5/6 md:w-full h-full p-4">
