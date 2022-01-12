@@ -41,7 +41,7 @@ function RandomizerPage() {
       }
     };
     
-    setOutput(template.replace(/\<([a-zA-Z]*)\>/g, replacer));
+    setOutput(template.replace(/<([a-zA-Z]*)>/g, replacer));
   }, [template, generator]);
 
   const copyOutputToClipboard = () => {
