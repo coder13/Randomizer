@@ -1,4 +1,7 @@
 import { useCallback, useState, useMemo, useEffect } from 'react';
+import { Parser, Generator } from 'kbnf';
+
+const parser = new Parser();
 
 function RandomizerPage() {
   const [ source, setSource ] = useState('');
@@ -6,86 +9,82 @@ function RandomizerPage() {
   const [ output, setOutput ] = useState('');
   const [ errors, setErrors ] = useState([]);
   
-  const items = useMemo(() => {
-    const lines = source
-      .trim()
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => !!line);
-
-    const _items = {};
-
-    lines.forEach((line) => {
-      const split = line.split(/\s=\s/);
-      if (split.length !== 2) {
-        return;
+  const generator = useMemo(() => {
+    try {
+      console.log(13, source);
+      const grammar = parser.parse(source);
+      if (grammar) {
+        console.log(grammar);
+        return new Generator(grammar);
       }
-  
-      const tokenName = split[0];
-      const values = split[1].split(/\s\|\s/);
-      _items[tokenName] = values;
-    });
-
-    return _items;
+    } catch (e) {
+      // Don't do anything
+      console.error('obviously', e);
+      return null;
+    }
   }, [source]);
 
   const formatOutput = useCallback(() => {
-    const replacer = (match, token) => {
-      const generator = items[token];
-      if (!generator) {
-        return match;
-      }
+    if (!generator) {
+      return;
+    }
 
-      return generator[Math.floor(Math.random() * generator.length)];
+    const replacer = (match, token) => {
+      if (generator.findRule(token)) {
+        return generator.generate(token, true);
+      } else {
+        return `<${token}>`;
+      }
     };
     
     setOutput(template.replace(/\<([a-zA-Z]*)\>/g, replacer));
-  }, [template, items]);
+  }, [template, generator]);
 
   useEffect(() => {
     formatOutput();
   }, [formatOutput]);
 
   return (
-    <div className="flex flex-1 flex-col xl:w-4/5 lg:w-5/6 md:w-full h-full p-4">
+    <div className="flex flex-1 flex-col flex-wrap xl:w-4/5 lg:w-5/6 md:w-full h-full p-4">
       <div className="flex flex-row flex-1 px-4">
         <div className="flex flex-col flex-none w-1/3 h-full">
           <div>
-            <h2>Grammar</h2>
+            <h2 className="text-lg">Grammar</h2>
           </div>
           <textarea
             value={source}
             onChange={(e) => setSource(e.currentTarget.value)}
-            className="font-mono	resize-none	bg-blue-400 text-white h-full flex-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+            className="font-mono	resize-none h-full flex-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
             autoFocus
             />
           <p>
-            {Object.keys(items).length} Rules
+            {generator?.grammar?.rules?.length || 0} Rules
           </p>
         </div>
-        <div className="flex flex-col flex-auto px-4">
-          <div>
-            <h2>Template</h2>
-          </div>
-          <div className="font-mono	flex flex-1 flex-col w-full h-full rounded-md bg-blue-400 text-white">
+        <div className="flex flex-col flex-1 px-4">
+          <div className="font-mono	flex flex-1 flex-col w-full h-1/2 rounded-md">
+            <h2 className="text-lg">Template</h2>
             <textarea
               name="outputTemplate"
               value={template}
               onChange={(e) => setTemplate(e.currentTarget.value)}
-              className="resize-none bg-blue-400 w-full h-1/2 flex-1 border border-gray-300 rounded-md rounded-b-none p-1 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+              className="resize-none w-full flex-1 border border-gray-300 rounded-md rounded-b-none p-1 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
               />
-            <textarea
-              className="resize-none	bg-white text-black w-full h-1/2 flex-1 border border-gray-300 p-1 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
-              name="output"
-              value={output}
-              disabled
-            />
-            <button
-              className="bg-indigo-600 text-white rounded-b-md"
-              onClick={formatOutput}
-            >
-              Regenerate
-            </button>
+            </div>
+            <div className="font-mono	flex flex-1 flex-col w-full h-1/2 rounded-md">
+              <h2 className="text-lg">Output</h2>
+              <textarea
+                className="resize-none w-full flex-1 border border-gray-300 p-1 shadow-sm focus:outline-none sm:text-sm"
+                name="output"
+                value={output}
+                disabled
+              />
+              <button
+                className="bg-indigo-600 rounded-b-md"
+                onClick={formatOutput}
+              >
+                Regenerate
+              </button>
           </div>
         </div>
       </div>
