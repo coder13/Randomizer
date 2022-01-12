@@ -1,6 +1,5 @@
 import { useCallback, useState, useMemo, useEffect } from 'react';
 import clsx from 'clsx';
-import { InformationCircleIcon } from '@heroicons/react/solid'
 import { Parser, Generator } from 'kbnf';
 
 const parser = new Parser();
